@@ -72,7 +72,7 @@ class TopicsSpider(scrapy.spiders.SitemapSpider):
         }
 
     @staticmethod
-    def parse_comments(response: Response) -> dict[str, Any]:
+    def parse_comments(response: Response) -> list[dict[str, Any]]:
         comments = response.xpath('//div[@class="comments_lst_cnt"]/div[starts-with(@id,"hook_Block_")]')
         data = []
         for comment in comments:
