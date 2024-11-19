@@ -7,22 +7,23 @@ from dateutil import parser as date_parser
 
 
 class TopicsSpider(scrapy.spiders.SitemapSpider):
+    """
+    SiteMapSpider crawls ok.ru group topics with comments
+
+    Parameters:
+        group: Union[int, str] - group id or name
+        from_date: Union[datetime, str, None] = None - last scraping date (if a string, then in '%Y-%m-%d' format)
+    """
     name = 'topics_crawler'
     sitemap_urls = ['https://ok.ru/sitemap-index-group-topic.xml.gz']
 
     def __init__(
         self,
-        group: str,
+        group: Union[int, str],
         from_date: Union[datetime, str, None] = None,
         *args,
         **kwargs
     ):
-        """
-        SiteMapSpider crawls ok.ru group topics with comments
-
-        :param str group: group id or name
-        :param Union[datetime, str, None] from_date: last scraping date (if a string, then in '%Y-%m-%d' format)
-        """
         sitemap_rules = [(f'/{group}/topic/', 'parse')]
         super(TopicsSpider, self).__init__(sitemap_rules=sitemap_rules, *args, **kwargs)
         if isinstance(from_date, str):
