@@ -1,0 +1,6 @@
+redis~=5.2.0
+fastapi~=0.115.5
+Scrapy~=2.11.2
+python-dateutil~=2.9.0.post0
+schedule~=1.2.2
+scrapyscript~=1.1.5

@@ -39,18 +39,17 @@ class TopicsSpider(scrapy.spiders.SitemapSpider):
             if not self.from_date or date >= self.from_date:
                 yield entry
 
-    async def parse(self, response: Response, **kwargs: Any) -> Any:
+    def parse(self, response: Response, **kwargs: Any) -> Any:
         try:
-            data = await self.parse_topic(response)
-            data.update(await self.parse_comments(response))
-            # yield data
-            with open(f'{response.url.split("/")[-1]}.txt', 'a') as f:
-                f.write('1')
+            topic = self.parse_topic(response)
+            comments = self.parse_comments(response)
+            topic.update(comments=comments)
+            yield topic
         except Exception as err:
             self.logger.exception(err)
 
     @staticmethod
-    async def parse_topic(response: Response) -> dict[str, Any]:
+    def parse_topic(response: Response) -> dict[str, Any]:
         group_author = json.loads(response.xpath('//div[@class="mlr_top"]/div/group-author/@data').get())
         author_name = group_author['group']['name']
         author_link = group_author['group']['href']
@@ -60,20 +59,21 @@ class TopicsSpider(scrapy.spiders.SitemapSpider):
         geo_lon = response.xpath('//media-topic-map/@lng').get()
         text = response.xpath('normalize-space(string(//div[@class="media-text_cnt"]))').get()
         comments_num = response.xpath('//div[@class="mlr_disc js-discussion-layer-block"]/div/@data-count').get()
-        return {response.url.rstrip('/').split('/')[-1]: {
+        return {
+            'id': response.url.rstrip('/').split('/')[-1],
             'type': 'topic',
             'url': response.url,
             'author': {'author_name': author_name, 'author_link': author_link},
             'geolocation': {'name': geo_name, 'lat': geo_lat, 'lon': geo_lon},
             'text': text,
             'date_timestamp': date_timestamp,
-            'comments_num': int(comments_num)}
+            'comments_num': int(comments_num)
         }
 
     @staticmethod
-    async def parse_comments(response: Response) -> dict[str, Any]:
+    def parse_comments(response: Response) -> dict[str, Any]:
         comments = response.xpath('//div[@class="comments_lst_cnt"]/div[starts-with(@id,"hook_Block_")]')
-        data = dict()
+        data = []
         for comment in comments:
             comment_id = json.loads(comment.xpath('div/@data-seen-params').get())['data']['commentId']
             date_timestamp = comment.xpath('div/@data-time').get()
@@ -82,12 +82,13 @@ class TopicsSpider(scrapy.spiders.SitemapSpider):
             replied_id = comment.xpath('div/div/div/div/span/@data-rid').get()
             text = comment.xpath('normalize-space(string(div/div/div/div/span/span[@class="js-text-full"]))').get()
             likes_num = comment.xpath('div/div/div/div/li/button/span[@class="tico tico__16"]/text()').get()
-            data[comment_id] = {
+            data.append({
+                'id': comment_id,
                 'type': 'comment',
                 'author': {'author_name': author_name, 'author_link': author_link},
                 'text': text,
                 'date_timestamp': int(date_timestamp),
                 'replied_id': replied_id,
                 'likes_num': int(likes_num)
-            }
+            })
         return data
