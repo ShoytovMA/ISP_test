@@ -11,8 +11,9 @@ from argparse import ArgumentParser
 from scrapyscript import Job, Processor
 from datetime import datetime, timedelta
 
-spider_params_db = redis.Redis(decode_responses=True, db=0)
-crawled_data_db = redis.Redis(db=1)
+
+spider_params_db = redis.Redis(host='redis', decode_responses=True, db=0)
+crawled_data_db = redis.Redis(host='redis', db=1)
 
 
 def crawl_group(group: str):
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.workers)  # first run
-    schedule.every(args.delay).minutes.do(main, workers=args.workers)  # schedule next runs
+    schedule.every(args.delay).hours.do(main, workers=args.workers)  # schedule next runs
 
     while True:
         schedule.run_pending()

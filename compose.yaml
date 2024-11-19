@@ -1,0 +1,15 @@
+services:
+  redis:
+    image: "redis:alpine"
+  front:
+    build: ./front
+    ports:
+      - "80:80"
+    depends_on:
+      redis:
+        condition: service_started
+  back:
+    build: ./back
+    depends_on:
+      redis:
+        condition: service_started

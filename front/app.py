@@ -4,9 +4,10 @@ from datetime import datetime
 import redis.asyncio as redis
 from fastapi import FastAPI, HTTPException
 
+
 app = FastAPI()
-spider_params_db = redis.Redis(decode_responses=True, db=0)
-crawled_data_db = redis.Redis(db=1)
+spider_params_db = redis.Redis(host='redis', decode_responses=True, db=0)
+crawled_data_db = redis.Redis(host='redis', db=1)
 
 
 @app.post('/')
